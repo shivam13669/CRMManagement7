@@ -352,8 +352,6 @@ export const handleLogin: RequestHandler = async (req, res) => {
 };
 
 // Forgot Password Handler (email-based reset)
-import nodemailer from 'nodemailer';
-import crypto from 'crypto';
 
 export const handleForgotPassword: RequestHandler = async (req, res) => {
   try {

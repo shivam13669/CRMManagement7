@@ -46,6 +46,8 @@ export default function ForgotPassword() {
 
       if (response.ok) {
         setIsEmailSent(true);
+      } else if (response.status === 429) {
+        setError('Too many requests. Please try again later.');
       } else {
         const data = await response.json();
         setError(data.message || "Failed to send reset email. Please try again.");

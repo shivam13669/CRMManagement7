@@ -23,6 +23,33 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { isAdminSignupAllowed } from "../admin-init";
 
+// Simple in-memory rate limiter for forgot-password to prevent abuse
+// Limits: maxAttempts per windowMs per key (IP or email)
+const rateLimitStore = new Map<string, { count: number; first: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 5;
+
+function isRateLimited(key: string) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry) {
+    rateLimitStore.set(key, { count: 1, first: now });
+    return false;
+  }
+
+  if (now - entry.first > RATE_LIMIT_WINDOW_MS) {
+    // Reset window
+    rateLimitStore.set(key, { count: 1, first: now });
+    return false;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) return true;
+
+  entry.count += 1;
+  rateLimitStore.set(key, entry);
+  return false;
+}
+
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
 

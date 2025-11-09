@@ -21,7 +21,7 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       setError("Please enter your email address");
       return;
@@ -47,10 +47,12 @@ export default function ForgotPassword() {
       if (response.ok) {
         setIsEmailSent(true);
       } else if (response.status === 429) {
-        setError('Too many requests. Please try again later.');
+        setError("Too many requests. Please try again later.");
       } else {
         const data = await response.json();
-        setError(data.message || "Failed to send reset email. Please try again.");
+        setError(
+          data.message || "Failed to send reset email. Please try again.",
+        );
       }
     } catch (error) {
       console.error("Forgot password error:", error);
@@ -89,7 +91,7 @@ export default function ForgotPassword() {
                   try again
                 </button>
               </p>
-              
+
               <Link
                 to="/login"
                 className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
@@ -120,7 +122,8 @@ export default function ForgotPassword() {
             Forgot Password?
           </CardTitle>
           <CardDescription className="text-gray-600 mt-2">
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we'll send you a link to reset your
+            password
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -148,11 +151,7 @@ export default function ForgotPassword() {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Sending..." : "Send Reset Link"}
             </Button>
 

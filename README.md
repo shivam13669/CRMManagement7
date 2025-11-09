@@ -5,12 +5,14 @@ A comprehensive healthcare management system built with React, TypeScript, and E
 ## 🌟 Features
 
 ### Multi-Role User Management
+
 - **Admin**: Complete system oversight and user management
 - **Doctors**: Appointment management and patient care
-- **Staff**: Ambulance service coordination  
+- **Staff**: Ambulance service coordination
 - **Patients**: Appointment booking and service requests
 
 ### Core Functionality
+
 - 🔐 **Secure Authentication**: JWT-based with role-based access control
 - 📅 **Appointment System**: Complete booking and management workflow
 - 🚑 **Ambulance Services**: Emergency request and dispatch system
@@ -30,6 +32,7 @@ A comprehensive healthcare management system built with React, TypeScript, and E
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - PNPM (recommended)
 
@@ -49,13 +52,14 @@ pnpm dev
 
 The application will be available at `http://localhost:8080`
 
-
 ## 📋 User Roles & Capabilities
 
 ### 👑 Administrator
+
 **Access Level**: Full system control
 
 **Capabilities**:
+
 - Manage all users (view, suspend, reactivate, delete)
 - Approve/reject doctor and staff registrations
 - View all appointments and ambulance requests
@@ -64,9 +68,11 @@ The application will be available at `http://localhost:8080`
 - Cannot be deleted or suspended
 
 ### 🩺 Doctor
+
 **Registration**: Requires admin approval
 
 **Capabilities**:
+
 - View and manage assigned appointments
 - Accept unassigned appointments
 - Update appointment status and notes
@@ -74,18 +80,22 @@ The application will be available at `http://localhost:8080`
 - Manage availability and profile
 
 ### 👨‍⚕️ Staff
+
 **Registration**: Requires admin approval
 
 **Capabilities**:
+
 - Manage ambulance requests
 - Assign ambulance services to requests
 - Update ambulance request status
 - View patient information for service coordination
 
-### 🏥 Patient  
+### 🏥 Patient
+
 **Registration**: Immediate approval
 
 **Capabilities**:
+
 - Book appointments with doctors
 - Request ambulance services
 - Submit feedback and complaints
@@ -97,11 +107,13 @@ The application will be available at `http://localhost:8080`
 ### Core Tables
 
 #### users
+
 Primary user accounts for all roles
+
 ```sql
 - id: INTEGER PRIMARY KEY
 - username: TEXT UNIQUE
-- email: TEXT UNIQUE  
+- email: TEXT UNIQUE
 - password: TEXT (bcrypt hashed)
 - role: TEXT (admin|doctor|patient|staff)
 - full_name: TEXT
@@ -112,7 +124,9 @@ Primary user accounts for all roles
 ```
 
 #### patients
+
 Extended patient information
+
 ```sql
 - user_id: INTEGER (FK to users.id)
 - date_of_birth: DATE
@@ -131,7 +145,9 @@ Extended patient information
 ```
 
 #### doctors
+
 Doctor profiles and availability
+
 ```sql
 - user_id: INTEGER (FK to users.id)
 - specialization: TEXT
@@ -144,7 +160,9 @@ Doctor profiles and availability
 ```
 
 #### appointments
+
 Appointment scheduling and management
+
 ```sql
 - id: INTEGER PRIMARY KEY
 - patient_user_id: INTEGER (FK to users.id)
@@ -160,7 +178,9 @@ Appointment scheduling and management
 ```
 
 #### ambulance_requests
+
 Emergency ambulance services
+
 ```sql
 - id: INTEGER PRIMARY KEY
 - patient_user_id: INTEGER (FK to users.id)
@@ -178,7 +198,9 @@ Emergency ambulance services
 ```
 
 #### feedback_complaints
+
 Patient feedback and complaint system
+
 ```sql
 - id: INTEGER PRIMARY KEY
 - user_id: INTEGER (FK to users.id)
@@ -194,7 +216,9 @@ Patient feedback and complaint system
 ```
 
 #### pending_registrations
+
 Doctor/staff approval workflow
+
 ```sql
 - id: INTEGER PRIMARY KEY
 - username: TEXT
@@ -216,7 +240,9 @@ Doctor/staff approval workflow
 ### Authentication Endpoints
 
 #### POST /api/auth/register
+
 Register new user account
+
 ```typescript
 // Request
 {
@@ -242,7 +268,9 @@ Register new user account
 ```
 
 #### POST /api/auth/login
+
 User authentication
+
 ```typescript
 // Request
 {
@@ -258,15 +286,19 @@ User authentication
 ```
 
 #### GET /api/auth/profile
+
 Get current user profile (requires JWT token)
 
 #### POST /api/auth/change-password
+
 Change user password (requires JWT token)
 
 ### Appointment Management
 
 #### POST /api/appointments
+
 Book new appointment (patients only)
+
 ```typescript
 {
   doctor_user_id?: number;
@@ -278,18 +310,23 @@ Book new appointment (patients only)
 ```
 
 #### GET /api/appointments
+
 Get appointments (role-based filtering)
 
 #### PUT /api/appointments/:appointmentId
+
 Update appointment status/assignment
 
 #### GET /api/appointments/my-appointments
+
 Get patient's appointments
 
 ### Ambulance Services
 
 #### POST /api/ambulance/request
+
 Request ambulance service
+
 ```typescript
 {
   pickup_address: string;
@@ -302,40 +339,51 @@ Request ambulance service
 ```
 
 #### GET /api/ambulance/requests
+
 Get all ambulance requests (staff/admin only)
 
 #### PUT /api/ambulance/requests/:requestId
+
 Update ambulance request status
 
 ### Admin Endpoints
 
 #### GET /api/admin/users
+
 Get all users
 
 #### POST /api/admin/users/:userId/suspend
+
 Suspend user account
 
 #### POST /api/admin/users/:userId/reactivate
+
 Reactivate user account
 
 #### GET /api/admin/pending-registrations
+
 Get pending doctor/staff registrations
 
 #### POST /api/admin/pending-registrations/:registrationId/approve
+
 Approve pending registration
 
 #### POST /api/admin/pending-registrations/:registrationId/reject
+
 Reject pending registration
 
 ### Feedback System
 
 #### POST /api/feedback
+
 Submit feedback or complaint
 
 #### GET /api/admin/feedback
+
 Get all feedback/complaints (admin only)
 
 #### PUT /api/admin/feedback/:feedbackId/status
+
 Update feedback status with admin response
 
 ## 🔒 Security Features
@@ -350,12 +398,14 @@ Update feedback status with admin response
 ## 🎨 UI Components
 
 Built with Radix UI and TailwindCSS, featuring:
+
 - **Responsive Design**: Mobile-first approach
 - **Accessibility**: WCAG compliant components
 - **Dark Mode**: Theme switching support
 - **Component Library**: Pre-built UI components in `client/components/ui/`
 
 Key components:
+
 - Form controls (Input, Select, Checkbox, etc.)
 - Data display (Table, Card, Badge, etc.)
 - Navigation (Tabs, Breadcrumb, etc.)
@@ -364,17 +414,20 @@ Key components:
 ## 📱 Pages & Navigation
 
 ### Public Pages
+
 - **Login**: User authentication
 - **Register**: New user registration
 - **Home**: Landing page with system overview
 
 ### Dashboard Pages (Role-based)
+
 - **Admin Dashboard**: System overview, user management, approval queue
 - **Doctor Dashboard**: Appointments, patient management
 - **Staff Dashboard**: Ambulance requests, service coordination
 - **Patient Dashboard**: Appointments, medical history, service requests
 
 ### Feature Pages
+
 - **Appointments**: Booking, management, history
 - **Ambulance**: Request form, tracking, history
 - **User Management**: Admin tools for user oversight
@@ -384,6 +437,7 @@ Key components:
 ## 🚀 Deployment
 
 ### Environment Variables
+
 ```bash
 # Optional - defaults provided for development
 JWT_SECRET=your_jwt_secret_here
@@ -391,6 +445,7 @@ PING_MESSAGE=custom_ping_message
 ```
 
 ### Build Commands
+
 ```bash
 # Development
 pnpm dev
@@ -409,14 +464,18 @@ pnpm typecheck
 ```
 
 ### Netlify Deployment
+
 The project includes Netlify configuration:
+
 - Serverless functions in `netlify/functions/`
 - Automatic redirects configured in `netlify.toml`
 - Build command: `pnpm build`
 - Publish directory: `dist/spa`
 
 ### Vercel Deployment
+
 Compatible with Vercel serverless deployment:
+
 - API routes automatically detected
 - Zero-configuration deployment
 - Environment variables support
@@ -467,6 +526,7 @@ healthcare-management-system/
 ## 🧪 Testing
 
 The project uses Vitest for testing:
+
 ```bash
 # Run tests
 pnpm test
@@ -486,6 +546,7 @@ Test files are located alongside source files with `.spec.ts` or `.test.ts` exte
 5. Submit a pull request
 
 ### Development Guidelines
+
 - Follow TypeScript best practices
 - Use existing UI components from `client/components/ui/`
 - Maintain consistent code formatting with Prettier
@@ -499,6 +560,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 For support and questions:
+
 1. Check the documentation
 2. Review existing issues
 3. Create a new issue with detailed description

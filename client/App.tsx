@@ -159,13 +159,19 @@ function App() {
 
             {/* Hospital Management Routes */}
             <Route path="/hospital-dashboard" element={<HospitalDashboard />} />
-            <Route path="/hospital-ambulances" element={<HospitalAmbulances />} />
+            <Route
+              path="/hospital-ambulances"
+              element={<HospitalAmbulances />}
+            />
             <Route path="/hospital-staff" element={<HospitalStaff />} />
             <Route path="/hospital-inventory" element={<HospitalInventory />} />
             <Route path="/hospital-reports" element={<HospitalReports />} />
             <Route path="/hospital-profile" element={<HospitalProfile />} />
             <Route path="/hospital-settings" element={<HospitalSettings />} />
-            <Route path="/hospital-management" element={<HospitalManagement />} />
+            <Route
+              path="/hospital-management"
+              element={<HospitalManagement />}
+            />
 
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

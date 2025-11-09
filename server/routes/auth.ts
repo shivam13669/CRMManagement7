@@ -19,8 +19,8 @@ import {
   PendingRegistration,
 } from "../database";
 import bcrypt from "bcryptjs";
-import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { isAdminSignupAllowed } from "../admin-init";
 
 // Simple in-memory rate limiter for forgot-password to prevent abuse
@@ -404,32 +404,42 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
     const SMTP_USER = process.env.SMTP_USER;
     const SMTP_PASS = process.env.SMTP_PASS;
     const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER;
-    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8080";
 
     if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-      console.error('❌ SMTP not configured - cannot send password reset email');
+      console.error(
+        "❌ SMTP not configured - cannot send password reset email",
+      );
       return res.status(500).json({
         error:
-          'Password reset not configured. Please contact the administrator to enable email sending (SMTP).',
+          "Password reset not configured. Please contact the administrator to enable email sending (SMTP).",
       });
     }
 
     // Rate-limit by IP and email
-    const ip = (req.ip || (req.headers['x-forwarded-for'] as string) || '').toString();
+    const ip = (
+      req.ip ||
+      (req.headers["x-forwarded-for"] as string) ||
+      ""
+    ).toString();
     if (isRateLimited(`ip:${ip}`) || isRateLimited(`email:${email}`)) {
       console.warn(`⏱️ Rate limit reached for ${ip} or ${email}`);
-      return res.status(429).json({ error: 'Too many password reset requests. Please try again later.' });
+      return res
+        .status(429)
+        .json({
+          error: "Too many password reset requests. Please try again later.",
+        });
     }
 
     // Generate token
-    const token = crypto.randomBytes(32).toString('hex');
+    const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
 
     // Store token in DB
     await createPasswordReset(email, token, expiresAt);
 
     // Build reset link
-    const resetLink = `${FRONTEND_URL.replace(/\/$/, '')}/reset-password?token=${token}`;
+    const resetLink = `${FRONTEND_URL.replace(/\/$/, "")}/reset-password?token=${token}`;
 
     // Send email using nodemailer
     const transporter = nodemailer.createTransport({
@@ -445,7 +455,7 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
     const mailOptions = {
       from: FROM_EMAIL,
       to: email,
-      subject: 'Reset your password',
+      subject: "Reset your password",
       text: `Reset your password using the following link (valid for 1 hour): ${resetLink}`,
       html: `
       <div style="font-family: system-ui, -apple-system, Roboto, 'Segoe UI', Arial; color:#111;">
@@ -464,14 +474,21 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    const mask = (e: string) => { const p = e.split('@'); if (p.length!==2) return '***'; return p[0].slice(0,1)+'***@'+p[1]; };
+    const mask = (e: string) => {
+      const p = e.split("@");
+      if (p.length !== 2) return "***";
+      return p[0].slice(0, 1) + "***@" + p[1];
+    };
     console.log(`✉️ Sent password reset email to: ${mask(email)}`);
 
     // Respond generically
-    res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
+    res.json({
+      message:
+        "If an account with that email exists, a reset link has been sent.",
+    });
   } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Forgot password error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -481,38 +498,42 @@ export const handleResetPassword: RequestHandler = async (req, res) => {
     const { token, newPassword } = req.body;
 
     if (!token || !newPassword) {
-      return res.status(400).json({ error: 'Token and newPassword are required' });
+      return res
+        .status(400)
+        .json({ error: "Token and newPassword are required" });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+      return res
+        .status(400)
+        .json({ error: "New password must be at least 6 characters long" });
     }
 
     const reset = getPasswordResetByToken(token);
     if (!reset) {
-      return res.status(400).json({ error: 'Invalid or expired token' });
+      return res.status(400).json({ error: "Invalid or expired token" });
     }
 
     const expiresAt = new Date(reset.expires_at);
     if (expiresAt.getTime() < Date.now()) {
       // Cleanup expired token
       deletePasswordReset(token);
-      return res.status(400).json({ error: 'Invalid or expired token' });
+      return res.status(400).json({ error: "Invalid or expired token" });
     }
 
     // Update password
     const updated = await updateUserPassword(reset.email, newPassword);
     if (!updated) {
-      return res.status(500).json({ error: 'Failed to update password' });
+      return res.status(500).json({ error: "Failed to update password" });
     }
 
     // Remove token
     deletePasswordReset(token);
 
-    res.json({ message: 'Password reset successful' });
+    res.json({ message: "Password reset successful" });
   } catch (error) {
-    console.error('Reset password error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Reset password error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

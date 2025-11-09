@@ -68,7 +68,9 @@ export default function ResetPassword() {
                 name="newPassword"
                 type="password"
                 value={form.newPassword}
-                onChange={(e) => setForm((p) => ({ ...p, newPassword: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, newPassword: e.target.value }))
+                }
                 placeholder="Enter new password"
               />
             </div>
@@ -80,7 +82,9 @@ export default function ResetPassword() {
                 name="confirmPassword"
                 type="password"
                 value={form.confirmPassword}
-                onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, confirmPassword: e.target.value }))
+                }
                 placeholder="Confirm new password"
               />
             </div>
@@ -91,7 +95,13 @@ export default function ResetPassword() {
               <Button type="submit" disabled={loading} className="flex-1">
                 {loading ? "Processing..." : "Reset Password"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => navigate('/login')}>Cancel</Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/login")}
+              >
+                Cancel
+              </Button>
             </div>
           </form>
         )}

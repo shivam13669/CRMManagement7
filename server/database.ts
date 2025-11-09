@@ -4,21 +4,22 @@ import { join } from "path";
 import bcrypt from "bcryptjs";
 
 function maskEmail(email: string) {
-  if (!email) return '';
-  const parts = email.split('@');
-  if (parts.length !== 2) return '***';
+  if (!email) return "";
+  const parts = email.split("@");
+  if (parts.length !== 2) return "***";
   const [local, domain] = parts;
-  const visible = local.length > 1 ? local[0] : '*';
-  const maskedLocal = visible + '*'.repeat(Math.max(1, Math.min(4, local.length - 1)));
+  const visible = local.length > 1 ? local[0] : "*";
+  const maskedLocal =
+    visible + "*".repeat(Math.max(1, Math.min(4, local.length - 1)));
   return `${maskedLocal}@${domain}`;
 }
 
 function maskPhone(phone: string) {
-  if (!phone) return '';
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length <= 4) return '****';
+  if (!phone) return "";
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length <= 4) return "****";
   const last = digits.slice(-2);
-  return '****' + last;
+  return "****" + last;
 }
 
 // Database file path - real SQLite database file!
@@ -587,8 +588,8 @@ export async function createUser(user: User): Promise<number> {
 
     saveDatabase();
     console.log(
-    `✅ User created in SQLite: ${maskEmail(user.email)} (${user.role}) - ID: ${userId}`,
-  );
+      `✅ User created in SQLite: ${maskEmail(user.email)} (${user.role}) - ID: ${userId}`,
+    );
 
     return userId as number;
   } catch (error) {
@@ -609,7 +610,10 @@ export function getUserByEmail(email: string): User | undefined {
     // Use exec instead of prepare for sql.js
     const result = db.exec("SELECT * FROM users WHERE email = ?", [email]);
 
-    console.log('🔍 Query executed for email, rows:', result && result[0] && result[0].values ? result[0].values.length : 0);
+    console.log(
+      "🔍 Query executed for email, rows:",
+      result && result[0] && result[0].values ? result[0].values.length : 0,
+    );
 
     if (
       !result ||
@@ -651,7 +655,10 @@ export function getUserByPhone(phone: string): User | undefined {
     // Use exec instead of prepare for sql.js
     const result = db.exec("SELECT * FROM users WHERE phone = ?", [phone]);
 
-    console.log('🔍 Phone query executed, rows:', result && result[0] && result[0].values ? result[0].values.length : 0);
+    console.log(
+      "🔍 Phone query executed, rows:",
+      result && result[0] && result[0].values ? result[0].values.length : 0,
+    );
 
     if (
       !result ||
@@ -965,8 +972,8 @@ export async function createPendingRegistration(
     const hashedPassword = await bcrypt.hash(registration.password, 10);
 
     console.log(
-    `📝 Creating pending registration: ${maskEmail(registration.email)} (${registration.role})`,
-  );
+      `📝 Creating pending registration: ${maskEmail(registration.email)} (${registration.role})`,
+    );
 
     // Simplified insert without datetime('now') for better compatibility
     db.run(
@@ -1735,7 +1742,7 @@ export async function createPasswordReset(
         token TEXT UNIQUE NOT NULL,
         expires_at DATETIME NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )`
+      )`,
     );
 
     // Remove any existing tokens for this email
@@ -1760,8 +1767,15 @@ export async function createPasswordReset(
 
 export function getPasswordResetByToken(token: string): any | undefined {
   try {
-    const result = db.exec("SELECT * FROM password_resets WHERE token = ?", [token]);
-    if (!result || result.length === 0 || !result[0] || result[0].values.length === 0) {
+    const result = db.exec("SELECT * FROM password_resets WHERE token = ?", [
+      token,
+    ]);
+    if (
+      !result ||
+      result.length === 0 ||
+      !result[0] ||
+      result[0].values.length === 0
+    ) {
       return undefined;
     }
 

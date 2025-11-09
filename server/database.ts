@@ -1720,6 +1720,77 @@ export function updateHospital(
   }
 }
 
+// Password reset helpers
+export async function createPasswordReset(
+  email: string,
+  token: string,
+  expiresAt: string,
+): Promise<number> {
+  try {
+    // Ensure table exists
+    db.run(
+      `CREATE TABLE IF NOT EXISTS password_resets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`
+    );
+
+    // Remove any existing tokens for this email
+    db.run("DELETE FROM password_resets WHERE email = ?", [email]);
+
+    db.run(
+      `INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)`,
+      [email, token, expiresAt],
+    );
+
+    const result = db.exec("SELECT last_insert_rowid() as id");
+    const id = result[0].values[0][0];
+
+    saveDatabase();
+    console.log(`🔐 Created password reset for ${maskEmail(email)} (id=${id})`);
+    return id as number;
+  } catch (error) {
+    console.error("❌ Error creating password reset:", error);
+    throw error;
+  }
+}
+
+export function getPasswordResetByToken(token: string): any | undefined {
+  try {
+    const result = db.exec("SELECT * FROM password_resets WHERE token = ?", [token]);
+    if (!result || result.length === 0 || !result[0] || result[0].values.length === 0) {
+      return undefined;
+    }
+
+    const columns = result[0].columns;
+    const row = result[0].values[0];
+    const reset: any = {};
+    columns.forEach((col, index) => {
+      reset[col] = row[index];
+    });
+
+    return reset;
+  } catch (error) {
+    console.error("❌ Error getting password reset by token:", error);
+    return undefined;
+  }
+}
+
+export function deletePasswordReset(token: string): boolean {
+  try {
+    db.run("DELETE FROM password_resets WHERE token = ?", [token]);
+    saveDatabase();
+    console.log(`🗑️ Deleted password reset token`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error deleting password reset:", error);
+    return false;
+  }
+}
+
 export function closeDatabase(): void {
   try {
     if (db) {

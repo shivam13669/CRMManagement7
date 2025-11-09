@@ -6,13 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 export default function TestPendingRegistration() {
   const [formData, setFormData] = useState({
-    username: "testdoctor",
-    email: "test@doctor.com",
-    password: "123456",
+    username: "",
+    email: "",
+    password: "",
     role: "doctor",
-    full_name: "Test Doctor",
-    phone: "+91 1234567890",
-    specialization: "Cardiology"
+    full_name: "",
+    phone: "",
+    specialization: ""
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);

@@ -19,6 +19,8 @@ import {
   PendingRegistration,
 } from "../database";
 import bcrypt from "bcryptjs";
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import { isAdminSignupAllowed } from "../admin-init";
 
 const JWT_SECRET =

@@ -49,9 +49,6 @@ pnpm dev
 
 The application will be available at `http://localhost:8080`
 
-### Default Admin Account
-- **Email**: `admin179e@gmail.com`
-- **Password**: `123456`
 
 ## 📋 User Roles & Capabilities
 

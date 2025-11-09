@@ -57,6 +57,14 @@ export function StaffLayout({ children }: StaffLayoutProps) {
   const location = useLocation();
   const userName = localStorage.getItem("userName") || "Staff";
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      window.location.href = "/login";
+    }
+  }, []);
+
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [feedbackNotificationCount, setFeedbackNotificationCount] = useState(0);
 
@@ -231,6 +239,7 @@ export function StaffLayout({ children }: StaffLayoutProps) {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("authToken");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userName");
     window.location.href = "/login";

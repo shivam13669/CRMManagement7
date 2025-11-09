@@ -50,6 +50,14 @@ export function DoctorLayout({ children }: DoctorLayoutProps) {
   const location = useLocation();
   const userName = localStorage.getItem("userName") || "Doctor";
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      window.location.href = "/login";
+    }
+  }, []);
+
   const [notificationsLoading, setNotificationsLoading] = useState(false);
 
   // Fetch notifications from API
@@ -181,6 +189,7 @@ export function DoctorLayout({ children }: DoctorLayoutProps) {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("authToken");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userName");
     window.location.href = "/login";

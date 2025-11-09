@@ -3,6 +3,24 @@ import { writeFileSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
 import bcrypt from "bcryptjs";
 
+function maskEmail(email: string) {
+  if (!email) return '';
+  const parts = email.split('@');
+  if (parts.length !== 2) return '***';
+  const [local, domain] = parts;
+  const visible = local.length > 1 ? local[0] : '*';
+  const maskedLocal = visible + '*'.repeat(Math.max(1, Math.min(4, local.length - 1)));
+  return `${maskedLocal}@${domain}`;
+}
+
+function maskPhone(phone: string) {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length <= 4) return '****';
+  const last = digits.slice(-2);
+  return '****' + last;
+}
+
 // Database file path - real SQLite database file!
 const DB_PATH = join(process.cwd(), "healthcare.db");
 
@@ -545,7 +563,7 @@ export async function createUser(user: User): Promise<number> {
   try {
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
-    console.log(`👤 Creating user: ${user.email} (${user.role})`);
+    console.log(`👤 Creating user: ${maskEmail(user.email)} (${user.role})`);
 
     // Use db.run for INSERT statements
     db.run(
@@ -569,8 +587,8 @@ export async function createUser(user: User): Promise<number> {
 
     saveDatabase();
     console.log(
-      `✅ User created in SQLite: ${user.email} (${user.role}) - ID: ${userId}`,
-    );
+    `✅ User created in SQLite: ${maskEmail(user.email)} (${user.role}) - ID: ${userId}`,
+  );
 
     return userId as number;
   } catch (error) {
@@ -581,7 +599,7 @@ export async function createUser(user: User): Promise<number> {
 
 export function getUserByEmail(email: string): User | undefined {
   try {
-    console.log(`🔍 Checking email: ${email}`);
+    console.log(`🔍 Checking email: ${maskEmail(email)}`);
 
     if (!db) {
       console.log("❌ Database not initialized");
@@ -591,7 +609,7 @@ export function getUserByEmail(email: string): User | undefined {
     // Use exec instead of prepare for sql.js
     const result = db.exec("SELECT * FROM users WHERE email = ?", [email]);
 
-    console.log(`🔍 Query result:`, result);
+    console.log('🔍 Query executed for email, rows:', result && result[0] && result[0].values ? result[0].values.length : 0);
 
     if (
       !result ||
@@ -599,7 +617,7 @@ export function getUserByEmail(email: string): User | undefined {
       !result[0] ||
       result[0].values.length === 0
     ) {
-      console.log(`✅ Email ${email} is available`);
+      console.log(`✅ Email ${maskEmail(email)} is available`);
       return undefined;
     }
 
@@ -612,7 +630,7 @@ export function getUserByEmail(email: string): User | undefined {
       user[col] = row[index];
     });
 
-    console.log(`⚠️ Email ${email} already exists:`, user);
+    console.log(`⚠️ Email ${maskEmail(email)} already exists (id=${user.id})`);
     return user as User;
   } catch (error) {
     console.error("❌ Error getting user by email:", error);
@@ -623,7 +641,7 @@ export function getUserByEmail(email: string): User | undefined {
 
 export function getUserByPhone(phone: string): User | undefined {
   try {
-    console.log(`🔍 Checking phone: ${phone}`);
+    console.log(`🔍 Checking phone: ${maskPhone(phone)}`);
 
     if (!db) {
       console.log("❌ Database not initialized");
@@ -633,7 +651,7 @@ export function getUserByPhone(phone: string): User | undefined {
     // Use exec instead of prepare for sql.js
     const result = db.exec("SELECT * FROM users WHERE phone = ?", [phone]);
 
-    console.log(`🔍 Phone query result:`, result);
+    console.log('🔍 Phone query executed, rows:', result && result[0] && result[0].values ? result[0].values.length : 0);
 
     if (
       !result ||
@@ -641,7 +659,7 @@ export function getUserByPhone(phone: string): User | undefined {
       !result[0] ||
       result[0].values.length === 0
     ) {
-      console.log(`✅ Phone ${phone} is available`);
+      console.log(`✅ Phone ${maskPhone(phone)} is available`);
       return undefined;
     }
 
@@ -654,7 +672,7 @@ export function getUserByPhone(phone: string): User | undefined {
       user[col] = row[index];
     });
 
-    console.log(`⚠️ Phone ${phone} already exists:`, user);
+    console.log(`⚠️ Phone ${maskPhone(phone)} already exists (id=${user.id})`);
     return user as User;
   } catch (error) {
     console.error("❌ Error getting user by phone:", error);
@@ -722,7 +740,7 @@ export async function updateUserPassword(
   try {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    console.log(`🔒 Updating password for user: ${email}`);
+    console.log(`🔒 Updating password for user: ${maskEmail(email)}`);
 
     db.run(
       `
@@ -733,7 +751,7 @@ export async function updateUserPassword(
       [hashedPassword, email],
     );
 
-    console.log(`✅ Password updated successfully for: ${email}`);
+    console.log(`✅ Password updated successfully for: ${maskEmail(email)}`);
     saveDatabase();
     return true;
   } catch (error) {
@@ -947,8 +965,8 @@ export async function createPendingRegistration(
     const hashedPassword = await bcrypt.hash(registration.password, 10);
 
     console.log(
-      `📝 Creating pending registration: ${registration.email} (${registration.role})`,
-    );
+    `📝 Creating pending registration: ${maskEmail(registration.email)} (${registration.role})`,
+  );
 
     // Simplified insert without datetime('now') for better compatibility
     db.run(
@@ -984,7 +1002,7 @@ export async function createPendingRegistration(
 
     saveDatabase();
     console.log(
-      `✅ Pending registration created: ${registration.email} - ID: ${pendingId}`,
+      `✅ Pending registration created: ${maskEmail(registration.email)} - ID: ${pendingId}`,
     );
 
     return pendingId as number;
@@ -1134,7 +1152,7 @@ export async function approvePendingRegistration(
 
     saveDatabase();
     console.log(
-      `✅ Approved registration: ${registration.email} -> User ID: ${userId}`,
+      `✅ Approved registration: ${maskEmail(registration.email)} -> User ID: ${userId}`,
     );
 
     return true;

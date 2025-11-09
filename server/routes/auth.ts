@@ -464,7 +464,8 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    console.log(`✉️ Sent password reset email to: ${maskEmail(email)}`);
+    const mask = (e: string) => { const p = e.split('@'); if (p.length!==2) return '***'; return p[0].slice(0,1)+'***@'+p[1]; };
+    console.log(`✉️ Sent password reset email to: ${mask(email)}`);
 
     // Respond generically
     res.json({ message: 'If an account with that email exists, a reset link has been sent.' });

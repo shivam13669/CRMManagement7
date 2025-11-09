@@ -436,7 +436,9 @@ export function StaffLayout({ children }: StaffLayoutProps) {
                                         ? "5+"
                                         : feedbackNotificationCount}{" "}
                                       new feedback/complaint
-                                      {feedbackNotificationCount > 1 ? "s" : ""}{" "}
+                                      {feedbackNotificationCount > 1
+                                        ? "s"
+                                        : ""}{" "}
                                       received
                                     </p>
                                     <p className="text-xs text-gray-400 mt-1">

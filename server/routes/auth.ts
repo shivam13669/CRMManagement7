@@ -346,7 +346,10 @@ export const handleLogin: RequestHandler = async (req, res) => {
   }
 };
 
-// Forgot Password Handler
+// Forgot Password Handler (email-based reset)
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
+
 export const handleForgotPassword: RequestHandler = async (req, res) => {
   try {
     const { email } = req.body;
@@ -365,24 +368,105 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
       });
     }
 
-    // In a real application, you would:
-    // 1. Generate a secure reset token
-    // 2. Store it in the database with an expiration time
-    // 3. Send an email with the reset link
-    //
-    // For now, we'll just return a success message
-    // since email functionality is not implemented
+    // Ensure SMTP config exists
+    const SMTP_HOST = process.env.SMTP_HOST;
+    const SMTP_PORT = process.env.SMTP_PORT;
+    const SMTP_USER = process.env.SMTP_USER;
+    const SMTP_PASS = process.env.SMTP_PASS;
+    const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER;
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:8080';
 
-    console.log(`Password reset requested for: ${email}`);
+    if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+      console.error('❌ SMTP not configured - cannot send password reset email');
+      return res.status(500).json({
+        error:
+          'Password reset not configured. Please contact the administrator to enable email sending (SMTP).',
+      });
+    }
 
-    // Simulate sending email (in real app, use nodemailer or similar)
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+    // Store token in DB
+    await createPasswordReset(email, token, expiresAt);
+
+    // Build reset link
+    const resetLink = `${FRONTEND_URL.replace(/\/$/, '')}/reset-password?token=${token}`;
+
+    // Send email using nodemailer
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: parseInt(SMTP_PORT, 10),
+      secure: Number(SMTP_PORT) === 465, // true for 465, false for other ports
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'Password reset request',
+      text: `You (or someone else) requested a password reset. Use this link to reset your password (valid 1 hour): ${resetLink}`,
+      html: `<p>You (or someone else) requested a password reset. Click the link below to reset your password (valid 1 hour):</p>
+             <p><a href="${resetLink}">${resetLink}</a></p>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    console.log(`✉️ Sent password reset email to: ${email}`);
+
+    // Respond generically
     res.json({
       message:
-        "If an account with that email exists, a reset link has been sent.",
+        'If an account with that email exists, a reset link has been sent.',
     });
   } catch (error) {
-    console.error("Forgot password error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Reset password handler
+export const handleResetPassword: RequestHandler = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and newPassword are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    const reset = getPasswordResetByToken(token);
+    if (!reset) {
+      return res.status(400).json({ error: 'Invalid or expired token' });
+    }
+
+    const expiresAt = new Date(reset.expires_at);
+    if (expiresAt.getTime() < Date.now()) {
+      // Cleanup expired token
+      deletePasswordReset(token);
+      return res.status(400).json({ error: 'Invalid or expired token' });
+    }
+
+    // Update password
+    const updated = await updateUserPassword(reset.email, newPassword);
+    if (!updated) {
+      return res.status(500).json({ error: 'Failed to update password' });
+    }
+
+    // Remove token
+    deletePasswordReset(token);
+
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 

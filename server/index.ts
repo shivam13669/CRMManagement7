@@ -6,6 +6,7 @@ import {
   handleRegister,
   handleLogin,
   handleForgotPassword,
+  handleResetPassword,
   authenticateToken,
   handleGetProfile,
   handleChangePassword,

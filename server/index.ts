@@ -124,6 +124,7 @@ export async function createServer() {
   app.post("/api/auth/register", handleRegister);
   app.post("/api/auth/login", handleLogin);
   app.post("/api/auth/forgot-password", handleForgotPassword);
+  app.post("/api/auth/reset-password", handleResetPassword);
   app.get("/api/auth/profile", authenticateToken, handleGetProfile);
   app.post(
     "/api/auth/change-password",

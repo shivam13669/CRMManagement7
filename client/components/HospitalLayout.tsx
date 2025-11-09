@@ -57,6 +57,15 @@ export function HospitalLayout({ children }: HospitalLayoutProps) {
   const hospitalName = localStorage.getItem("hospitalName") || "Hospital";
   const userName = localStorage.getItem("userName") || "Administrator";
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const hasToken =
+      !!localStorage.getItem("authToken") || !!localStorage.getItem("token");
+    if (!hasToken) {
+      window.location.href = "/login";
+    }
+  }, []);
+
   // Fetch notifications from API
   const fetchNotifications = async () => {
     try {
@@ -183,6 +192,7 @@ export function HospitalLayout({ children }: HospitalLayoutProps) {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("authToken");
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userName");

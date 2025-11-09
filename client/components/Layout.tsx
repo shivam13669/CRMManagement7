@@ -67,6 +67,14 @@ export function Layout({ children }: LayoutProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      window.location.href = "/login";
+    }
+  }, []);
+
   // Fetch notifications from API
   const fetchNotifications = async () => {
     try {
@@ -178,6 +186,13 @@ export function Layout({ children }: LayoutProps) {
     } catch (error) {
       console.error("Error handling notification click:", error);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
+    window.location.href = "/login";
   };
 
   const getNotificationIcon = (type: string) => {
@@ -442,12 +457,12 @@ export function Layout({ children }: LayoutProps) {
                         Settings
                       </Link>
                       <div className="border-t border-gray-100"></div>
-                      <Link
-                        to="/login"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
                         Sign out
-                      </Link>
+                      </button>
                     </div>
                   </>
                 )}

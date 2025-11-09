@@ -59,6 +59,14 @@ export function CustomerLayout({ children }: CustomerLayoutProps) {
   const location = useLocation();
   const userName = localStorage.getItem("userName") || "Customer";
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      window.location.href = "/login";
+    }
+  }, []);
+
   // Fetch notifications from API
   const fetchNotifications = async () => {
     try {
@@ -188,6 +196,7 @@ export function CustomerLayout({ children }: CustomerLayoutProps) {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("authToken");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userName");
     window.location.href = "/login";

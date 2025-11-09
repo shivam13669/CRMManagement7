@@ -414,6 +414,13 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
       });
     }
 
+    // Rate-limit by IP and email
+    const ip = (req.ip || (req.headers['x-forwarded-for'] as string) || '').toString();
+    if (isRateLimited(`ip:${ip}`) || isRateLimited(`email:${email}`)) {
+      console.warn(`⏱️ Rate limit reached for ${ip} or ${email}`);
+      return res.status(429).json({ error: 'Too many password reset requests. Please try again later.' });
+    }
+
     // Generate token
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
@@ -438,21 +445,29 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
     const mailOptions = {
       from: FROM_EMAIL,
       to: email,
-      subject: 'Password reset request',
-      text: `You (or someone else) requested a password reset. Use this link to reset your password (valid 1 hour): ${resetLink}`,
-      html: `<p>You (or someone else) requested a password reset. Click the link below to reset your password (valid 1 hour):</p>
-             <p><a href="${resetLink}">${resetLink}</a></p>`,
+      subject: 'Reset your password',
+      text: `Reset your password using the following link (valid for 1 hour): ${resetLink}`,
+      html: `
+      <div style="font-family: system-ui, -apple-system, Roboto, 'Segoe UI', Arial; color:#111;">
+        <div style="max-width:600px;margin:0 auto;padding:20px;border:1px solid #eee;border-radius:8px;">
+          <h2 style="color:#0b63c6">ML Support — Password Reset</h2>
+          <p>We received a request to reset the password for your account. Click the button below to reset it. This link expires in 1 hour.</p>
+          <p style="text-align:center;margin:30px 0;"><a href="${resetLink}" style="background:#0b63c6;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;">Reset password</a></p>
+          <p>If you did not request a password reset, you can ignore this email — your password will remain unchanged.</p>
+          <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />
+          <p style="font-size:12px;color:#666">If the button doesn't work, copy and paste the following link into your browser:</p>
+          <p style="font-size:12px;color:#666;word-break:break-all">${resetLink}</p>
+        </div>
+      </div>
+      `,
     };
 
     await transporter.sendMail(mailOptions);
 
-    console.log(`✉️ Sent password reset email to: ${email}`);
+    console.log(`✉️ Sent password reset email to: ${maskEmail(email)}`);
 
     // Respond generically
-    res.json({
-      message:
-        'If an account with that email exists, a reset link has been sent.',
-    });
+    res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ error: 'Internal server error' });
